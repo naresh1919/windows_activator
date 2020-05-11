@@ -1,8 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
-  MyKeyName:
-    Type: AWS::EC2::KeyPair::KeyName
-    Description: seleect the key pair
   Triggers:
     Type: String
     Default: SQS
@@ -10,9 +7,9 @@ Parameters:
       - AlqxaHome 
       - SQS
       - SNS
-  Lambdaarn:
-    Type: AWS::Serverless::Function::FunctionName
-    Description: seleect the lambda
+#  Lambdaarn:
+#    Type: AWS::Serverless::Function::FunctionName
+ #   Description: seleect the lambda
 Conditions:
   CreateSQSTrigger: !Equals [!Ref Triggers, SQS]
   CreateSNSTrigger: !Equals [!Ref Triggers, SNS]
