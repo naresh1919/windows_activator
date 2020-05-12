@@ -7,9 +7,6 @@ Parameters:
       - AlqxaHome 
       - SQS
       - SNS
-#  Lambdaarn:
-#    Type: AWS::Serverless::Function::FunctionName
- #   Description: seleect the lambda
 Conditions:
   CreateSQSTrigger: !Equals [!Ref Triggers, SQS]
   CreateSNSTrigger: !Equals [!Ref Triggers, SNS]
@@ -21,9 +18,9 @@ Resources:
     Condition: CreateSNSTrigger
     Properties:
       Action: "lambda:InvokeFunction"
-      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambdaforApi"
+      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:<Lambda function Name>"
       Principal: "sns.amazonaws.com"
-      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:s3_bucket"
+      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:<SNS Topic Name>"
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Condition: CreateSQSTrigger
@@ -31,10 +28,10 @@ Resources:
       BatchSize: 10
       Enabled: true
       EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:tests"
-      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambdaforApi"
+      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:<lambda Function Name>"
 #  AlexaTrigger:
-#    Type:
-#    Condition:
+#    Type: "AWS::Lambda::Permission"
+#    Condition: CreateAlqxaHomeTrigger
 #    Properties:
 #      Action: lambda:InvokeFunction
 #      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambdaforApi"
