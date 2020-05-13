@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
+  LambdaFunction:
+    Type: String
+    Description: enter the lambda funtion name
   Triggers:
     Type: String
     Default: SQS
@@ -7,6 +10,10 @@ Parameters:
       - AlqxaHome 
       - SQS
       - SNS
+    Description: Select Trigger type
+  TriggerName:
+    Type: String
+    Description: enter Trigger api name
 Conditions:
   CreateSQSTrigger: !Equals [!Ref Triggers, SQS]
   CreateSNSTrigger: !Equals [!Ref Triggers, SNS]
@@ -18,22 +25,22 @@ Resources:
     Condition: CreateSNSTrigger
     Properties:
       Action: "lambda:InvokeFunction"
-      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:<Lambda function Name>"
+      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction}"
       Principal: "sns.amazonaws.com"
-      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:<SNS Topic Name>"
+      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Condition: CreateSQSTrigger
     Properties:
       BatchSize: 10
       Enabled: true
-      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:tests"
-      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:<lambda Function Name>"
+      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
+      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction}"
 #  AlexaTrigger:
 #    Type: "AWS::Lambda::Permission"
 #    Condition: CreateAlqxaHomeTrigger
 #    Properties:
 #      Action: lambda:InvokeFunction
-#      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambdaforApi"
+#      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction}"
 #      Principal: alexa-appkit.amazon.com
 #      event-source-token:
