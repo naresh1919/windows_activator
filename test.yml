@@ -11,15 +11,20 @@ Parameters:
       - SQS
       - SNS
     Description: Select Trigger type
-  TriggerName:
-    Type: String
-    Description: enter Trigger api name
+#  TriggerName:
+#    Type: String
+#    Description: enter Trigger api name
 Conditions:
   CreateSQSTrigger: !Equals [!Ref Triggers, SQS]
   CreateSNSTrigger: !Equals [!Ref Triggers, SNS]
   CreateAlqxaHomeTrigger: !Equals [!Ref Triggers, AlqxaHome]
 
 Resources:
+  MyQueue: 
+    Type: AWS::SQS::Queue
+    Condition: CreateSQSTrigger
+    Properties: 
+      QueueName: "SampleQueue"
   LambdaSNS:
     Type: "AWS::Lambda::Permission"
     Condition: CreateSNSTrigger
@@ -27,14 +32,17 @@ Resources:
       Action: "lambda:InvokeFunction"
       FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction}"
       Principal: "sns.amazonaws.com"
-      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
+    #  SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
+      SourceArn: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:s3_bucket"
+
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Condition: CreateSQSTrigger
     Properties:
       BatchSize: 10
       Enabled: true
-      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
+#      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${TriggerName}"
+      EventSourceArn: !GetAtt MyQueue.Arn
       FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction}"
 #  AlexaTrigger:
 #    Type: "AWS::Lambda::Permission"
