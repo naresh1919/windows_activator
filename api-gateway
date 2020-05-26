@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  ApigatewayEP:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.execute-api
+      SubnetIds: ["subnet-07532ce6e0f153381", "subnet-01dc83acc76404dd1"]
+      VpcId: "vpc-053b520296801fa73"
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      SecurityGroupIds: ["sg-0af5129fd00046b44"]
+  MyApiGate:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "myprivateapi"
+      Description: "myprivateapi"
+      EndpointConfiguration:
+        Types: 
+          - "PRIVATE"
+        VpcEndpointIds: 
+          - !Ref ApigatewayEP
+      Policy: 
+        {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Deny",
+                      "Principal": "*",
+                      "Action": "execute-api:Invoke",
+                      "Resource": "arn:aws:execute-api:ap-south-1:521124255972:9wd6oho9ul/*/*/*",
+                      "Condition": {
+                          "StringNotEquals": {
+                              "aws:sourceVpc": "vpc-053b520296801fa73"
+                          }
+                      }
+                  },
+                  {
+                      "Effect": "Allow",
+                      "Principal": "*",
+                      "Action": "execute-api:Invoke",
+                      "Resource": "arn:aws:execute-api:ap-south-1:521124255972:9wd6oho9ul/*/*/*"
+                  }
+              ]
+          }
+  RestApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt
+        - MyApiGate
+        - RootResourceId
+      PathPart: "test"
+      RestApiId: !Ref MyApiGate
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref MyApiGate
+      ResourceId: !Ref RestApiResource
+      AuthorizationType: NONE
+      HttpMethod: POST
+      MethodResponses: 
+        - StatusCode: "200"
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: POST
+        PassthroughBehavior: "when_no_templates"
+        ContentHandling: "CONVERT_TO_TEXT"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-south-1:521124255972:function:teat/invocations"
+        IntegrationResponses:
+           - StatusCode: "200"
+  ApiGatewayModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: 'application/json'
+      RestApiId: !Ref MyApiGate
+      Name: 'gatewaymodel'
+      Schema: {}
+  lambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    DependsOn: ApiGatewayMethod
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: "arn:aws:lambda:ap-south-1:521124255972:function:teat"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyApiGate}/*/POST/*"
+  Deployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: ApiGatewayMethod
+    Properties:
+      RestApiId: !Ref MyApiGate
+#      StageName: "test"
+  MyApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: "test"
+      Description: "test stage"
+      RestApiId: !Ref MyApiGate
+      DeploymentId: !Ref Deployment
+#      MethodSettings:
+#        - ResourcePath: "/test"
+#          HttpMethod: "POST"
+
+
