@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'branchName', defaultValue: 'master', description: 'selecct values is true')
+        booleanParam(name: 'tagbuild', defaultValue: true, description: 'select if it would be tag based build' )
+    }
+    stages {
+        stage('Hello') {
+            steps {
+            script {
+                
+                git branch: "${branchName}", changelog: false, poll: false, url: 'https://github.com/naresh1919/time-tracker.git'
+            if ( env.tagbuild == 'true' ) {
+                    //def tagName = sh(script: "git describe --tags | ", returnStdout: true)
+                    sh ''' export tagName=$(git describe --tags)
+                        rm -rf *
+                        echo ${tagName} > file.txt
+                    '''
+                    def tagName = readFile('file.txt').trim()
+                    println tagName
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "https://github.com/naresh1919/time-tracker.git"]], branches: [[name: "${tagName}"]]],poll: false   
+                    sh label: '', script: 'mvn compile test package'
+            }
+                
+            }
+            }
+        }
+    }
+}
