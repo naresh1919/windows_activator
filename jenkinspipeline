@@ -20,7 +20,9 @@ pipeline {
                     println tagName
                     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "https://github.com/naresh1919/time-tracker.git"]], branches: [[name: "${tagName}"]]],poll: false   
                     sh label: '', script: 'mvn compile test package'
-                    // git branch --contains version.test9 ----- this for get branch details from git tag
+                    //***************** this is for branch contains *********************
+                    //GIT_COMMIT_EMAIL = sh ( script: 'git branch --contains version.test10', returnStdout: true ).trim()
+                    //println GIT_COMMIT_EMAIL
             }
                 
             }
