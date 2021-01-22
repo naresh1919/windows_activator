@@ -1,0 +1,15 @@
+#!/bin/bash
+HOST=react-app
+USER=root
+PASSWORD=admin
+file="$1"
+/usr/bin/expect<<EOD
+
+spawn /usr/bin/sftp $USER@$HOST
+expect "password:"
+send "$PASSWORD\r"
+expect "sftp>"
+send "put \"$1\"\r"
+expect "sftp>"
+send "bye\r"
+EOD
