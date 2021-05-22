@@ -9,7 +9,7 @@ resource "google_storage_bucket_object" "archive" {
   bucket = "gcf-sources-394511129075-us-central1"
   source = "/home/nareshyanduri1919/function-source.zip"
 }
-resource "google_cloudfunctions_function" "function" {
+resource "google_cloudfunctions_function" "dunction" {
   name = var.name.name
   description = "my test function"
   runtime = var.name.python
@@ -19,4 +19,15 @@ resource "google_cloudfunctions_function" "function" {
   trigger_http = true
   timeout = 60
   entry_point = "hello_world"
+#  labels = {
+#  name = "test"
+#  private = "true"
+#}
+  labels = {
+    name = "naresh"
+    requirement = "true"
+    function = "test"
+    env = "personal"
+  }
+
 }
